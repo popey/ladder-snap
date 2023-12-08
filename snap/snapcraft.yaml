@@ -1,5 +1,5 @@
 name: ladder
-version: 0.0.21
+adopt-info: ladder
 base: core22
 license: GPL-3.0
 contact: https://github.com/popey/ladder-snap/issues
@@ -31,7 +31,21 @@ parts:
     source-type: git
     build-environment:
       - PATH: "$PATH:/root/go/bin"
-    source-tag: "v$SNAPCRAFT_PROJECT_VERSION"
+    override-pull: |
+      #set -x
+      snapcraftctl pull
+      last_committed_tag="$(git describe --tags --abbrev=0)"
+      last_committed_tag_ver="$(echo ${last_committed_tag} | sed 's/v//')"
+      last_released_tag="$(snap info $SNAPCRAFT_PROJECT_NAME | awk '$1 == "latest/beta:" { print $2 }')"
+      if [ "${last_committed_tag_ver}" != "${last_released_tag}" ]; then
+        git fetch
+        git checkout "${last_committed_tag}"
+        cd ../src
+        git checkout "${last_committed_tag}"
+      fi
+      VERSION="$(git describe --tags | cut -d- -f2-4 | tr -d 'v' )"
+      snapcraftctl set-version "$VERSION".$(git rev-parse --short HEAD)
+      echo v"$VERSION" > handlers/VERSION
     build-snaps:
       - go/1.21/stable
       - goreleaser/latest/stable
@@ -43,7 +57,6 @@ parts:
     #   export PATH=$PATH:$HOME/go/bin
     #   craftctl default
     override-build: |
-      echo "v$SNAPCRAFT_PROJECT_VERSION" > handlers/VERSION
       # single target builds only for this arch, but has a bug upstream
       # waiting for newer goreleaser this year to fix it. issue #4442 in goreleaser
       # https://github.com/goreleaser/goreleaser/pull/4442
