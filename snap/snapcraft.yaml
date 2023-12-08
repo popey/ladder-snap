@@ -1,0 +1,62 @@
+name: ladder
+version: 0.0.21
+base: core22
+license: GPL-3.0
+contact: https://github.com/popey/ladder-snap/issues
+issues: https://github.com/popey/ladder-snap/issues
+source-code: https://github.com/popey/ladder-snap
+website: https://github.com/everywall/ladder
+summary: Ladder is a web proxy to help bypass paywalls
+description: |
+  Selfhosted alternative to 12ft.io. and 1ft.io bypass paywalls with
+  a proxy ladder and remove CORS headers from any URL
+
+  This snap runs on port 8080, so once installed, point your browser at 
+  https://localhost:8080 - or whatever host it's running on.
+  
+  This snap is maintained by the Alan Pope, and is not
+  necessarily endorsed or officially maintained by the upstream developers.
+
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+
+grade: stable
+confinement: strict
+
+parts:
+  ladder:
+    plugin: make
+    source: https://github.com/everywall/ladder
+    source-type: git
+    build-environment:
+      - PATH: "$PATH:/root/go/bin"
+    source-tag: "v$SNAPCRAFT_PROJECT_VERSION"
+    build-snaps:
+      - go/1.21/stable
+      - goreleaser/latest/stable
+    # override-pull: |
+    #   craftctl default
+    #   go install mvdan.cc/gofumpt@latest
+    #   go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2
+    # override-build: |
+    #   export PATH=$PATH:$HOME/go/bin
+    #   craftctl default
+    override-build: |
+      echo "v$SNAPCRAFT_PROJECT_VERSION" > handlers/VERSION
+      # single target builds only for this arch, but has a bug upstream
+      # waiting for newer goreleaser this year to fix it. issue #4442 in goreleaser
+      # https://github.com/goreleaser/goreleaser/pull/4442
+      # goreleaser build --single-target
+      # So for now we use build, which builds binaries for all architectures and OS
+      # but we only take the one for this arch we are building on
+      goreleaser build
+      install dist/ladder_linux_$SNAP_ARCH*/ladder $SNAPCRAFT_PART_INSTALL
+
+apps:
+  ladder:
+    command: ladder
+    daemon: simple
+    plugs:
+      - network
+      - network-bind
