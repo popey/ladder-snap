@@ -14,7 +14,7 @@ description: |
   This snap runs on port 8080, so once installed, point your browser at 
   https://localhost:8080 - or whatever host it's running on.
   
-  This snap is maintained by the Alan Pope, and is not
+  This snap is maintained by Alan Pope, and is not
   necessarily endorsed or officially maintained by the upstream developers.
 
 architectures:
@@ -35,7 +35,7 @@ parts:
       #set -x
       snapcraftctl pull
       last_committed_tag="$(git describe --tags --abbrev=0)"
-      last_committed_tag_ver="$(echo ${last_committed_tag} | sed 's/v//')"
+      last_committed_tag_ver="$(echo ${last_committed_tag})"
       last_released_tag="$(snap info $SNAPCRAFT_PROJECT_NAME | awk '$1 == "latest/beta:" { print $2 }')"
       if [ "${last_committed_tag_ver}" != "${last_released_tag}" ]; then
         git fetch
@@ -43,9 +43,9 @@ parts:
         cd ../src
         git checkout "${last_committed_tag}"
       fi
-      VERSION="$(git describe --tags | cut -d- -f2-4 | tr -d 'v' )"
+      VERSION="$(git describe --tags | cut -d- -f2-4)"
       snapcraftctl set-version "$VERSION".$(git rev-parse --short HEAD)
-      echo v"$VERSION" > handlers/VERSION
+      echo "$VERSION" > handlers/VERSION
     build-snaps:
       - go/1.21/stable
       - goreleaser/latest/stable
