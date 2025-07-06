@@ -1,0 +1,13 @@
+#!/bin/sh -e
+
+port="$(snapctl get port)"
+if [ -n "$port" ]; then
+	export PORT="$port"
+fi
+
+userpass="$(snapctl get userpass)"
+if [ -n "$userpass" ]; then
+	export USERPASS="$userpass"
+fi
+
+ladder
