@@ -1,0 +1,17 @@
+#!/bin/sh -e
+
+# Check if port value is currently unset, and if so, set to 8080.
+#
+# On a fresh install, the install hook should set the port to the default
+# value (or have already been set by the gadget snap), but if we're refreshing
+# from a version which does not support a configurable port to one which does,
+# the install hook does not run, so the configure hook would see the empty port
+# setting and fail, reverting the refresh. To avoid this, ensure that after the
+# refresh occurs, a port is set for the new revision so the configure hook
+# triggered by the refresh will succeed as well.
+
+port="$(snapctl get port)"
+
+if [ -z "$port" ]; then
+	snapctl set port=8080
+fi

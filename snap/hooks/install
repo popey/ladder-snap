@@ -1,0 +1,13 @@
+#!/bin/sh -e
+
+# Check if port value is currently unset, and if so, set it to 8080.
+#
+# The gadget snap may have set a value for the port, but if not, ensure it is
+# set. Use port 8080 as a default value.
+
+port="$(snapctl get port)"
+
+# Initialize port if it's not set
+if [ -z "$port" ]; then
+	snapctl set port=8080
+fi
