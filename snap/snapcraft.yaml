@@ -1,6 +1,6 @@
 name: ladder
-adopt-info: ladder
 base: core24
+version: '0.0.22'
 license: GPL-3.0
 contact: https://github.com/popey/ladder-snap/issues
 issues: https://github.com/popey/ladder-snap/issues
@@ -29,25 +29,16 @@ parts:
     plugin: make
     source: https://github.com/everywall/ladder
     source-type: git
+    source-tag: 'v$SNAPCRAFT_PROJECT_VERSION'
     build-environment:
       - PATH: "$PATH:/root/go/bin"
-    override-pull: |
-      craftctl default
-      # Checkout the latest tag
-      last_committed_tag="$(git describe --tags --abbrev=0)"
-      git checkout "${last_committed_tag}"
+    override-build: |
+      echo "$SNAPCRAFT_PROJECT_VERSION" > handlers/VERSION
+      goreleaser build --single-target
+      install dist/ladder_linux_${SNAP_ARCH}*/ladder $SNAPCRAFT_PART_INSTALL
     build-snaps:
       - go/latest/stable
       - goreleaser/latest/stable
-    override-build: |
-      # Set version from git tag
-      VERSION="$(git describe --tags | sed 's/^v//')"
-      craftctl set-version "${VERSION}"
-      # Write version into handlers so it shows in the app
-      echo "${VERSION}" > handlers/VERSION
-      # Build single target for this arch
-      goreleaser build --single-target
-      install dist/ladder_linux_${SNAP_ARCH}*/ladder $SNAPCRAFT_PART_INSTALL
 
 apps:
   ladder:
