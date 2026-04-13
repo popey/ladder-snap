@@ -1,6 +1,6 @@
 name: ladder
 adopt-info: ladder
-base: core22
+base: core24
 license: GPL-3.0
 contact: https://github.com/popey/ladder-snap/issues
 issues: https://github.com/popey/ladder-snap/issues
