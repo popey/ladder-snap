@@ -17,9 +17,9 @@ description: |
   This snap is maintained by Alan Pope, and is not
   necessarily endorsed or officially maintained by the upstream developers.
 
-architectures:
-  - build-on: amd64
-  - build-on: arm64
+platforms:
+  amd64:
+  arm64:
 
 grade: stable
 confinement: strict
@@ -32,39 +32,19 @@ parts:
     build-environment:
       - PATH: "$PATH:/root/go/bin"
     override-pull: |
-      #set -x
-      snapcraftctl pull
+      craftctl default
+      # Checkout the latest tag
       last_committed_tag="$(git describe --tags --abbrev=0)"
-      last_committed_tag_ver="$(echo ${last_committed_tag})"
-      last_released_tag="$(snap info $SNAPCRAFT_PROJECT_NAME | awk '$1 == "latest/beta:" { print $2 }')"
-      if [ "${last_committed_tag_ver}" != "${last_released_tag}" ]; then
-        git fetch
-        git checkout "${last_committed_tag}"
-        cd ../src
-        git checkout "${last_committed_tag}"
-      fi
-      VERSION="$(git describe --tags | cut -d- -f2-4)"
-      snapcraftctl set-version "$VERSION".$(git rev-parse --short HEAD)
-      echo "$VERSION" > handlers/VERSION
+      git checkout "${last_committed_tag}"
+      VERSION="$(git describe --tags | sed 's/^v//')"
+      craftctl set-version "${VERSION}"
+      echo "${last_committed_tag#v}" > handlers/VERSION
     build-snaps:
-      - go/1.21/stable
+      - go/latest/stable
       - goreleaser/latest/stable
-    # override-pull: |
-    #   craftctl default
-    #   go install mvdan.cc/gofumpt@latest
-    #   go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2
-    # override-build: |
-    #   export PATH=$PATH:$HOME/go/bin
-    #   craftctl default
     override-build: |
-      # single target builds only for this arch, but has a bug upstream
-      # waiting for newer goreleaser this year to fix it. issue #4442 in goreleaser
-      # https://github.com/goreleaser/goreleaser/pull/4442
-      # goreleaser build --single-target
-      # So for now we use build, which builds binaries for all architectures and OS
-      # but we only take the one for this arch we are building on
-      goreleaser build
-      install dist/ladder_linux_$SNAP_ARCH*/ladder $SNAPCRAFT_PART_INSTALL
+      goreleaser build --single-target
+      install dist/ladder_linux_${SNAP_ARCH}*/ladder $SNAPCRAFT_PART_INSTALL
 
 apps:
   ladder:
