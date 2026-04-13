@@ -36,13 +36,16 @@ parts:
       # Checkout the latest tag
       last_committed_tag="$(git describe --tags --abbrev=0)"
       git checkout "${last_committed_tag}"
-      VERSION="$(git describe --tags | sed 's/^v//')"
-      craftctl set-version "${VERSION}"
-      echo "${last_committed_tag#v}" > handlers/VERSION
     build-snaps:
       - go/latest/stable
       - goreleaser/latest/stable
     override-build: |
+      # Set version from git tag
+      VERSION="$(git describe --tags | sed 's/^v//')"
+      craftctl set-version "${VERSION}"
+      # Write version into handlers so it shows in the app
+      echo "${VERSION}" > handlers/VERSION
+      # Build single target for this arch
       goreleaser build --single-target
       install dist/ladder_linux_${SNAP_ARCH}*/ladder $SNAPCRAFT_PART_INSTALL
 
