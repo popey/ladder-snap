@@ -1,0 +1,10 @@
+#!/bin/bash
+PORT=$(snapctl get port)
+USERPASS=$(snapctl get userpass)
+
+export PORT="${PORT:-8080}"
+if [ -n "$USERPASS" ]; then
+  export USERPASS="$USERPASS"
+fi
+
+exec "$SNAP/ladder"
