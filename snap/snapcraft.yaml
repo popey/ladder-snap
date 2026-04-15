@@ -1,4 +1,5 @@
 name: ladder
+title: Ladder
 base: core24
 version: '0.0.22'
 license: GPL-3.0
@@ -11,9 +12,20 @@ description: |
   Selfhosted alternative to 12ft.io. and 1ft.io bypass paywalls with
   a proxy ladder and remove CORS headers from any URL
 
-  This snap runs on port 8080, so once installed, point your browser at 
-  https://localhost:8080 - or whatever host it's running on.
-  
+  This snap runs on port 8080 by default. You can change the port with:
+
+    snap set ladder port=9090
+
+  To require Basic Auth (username:password), set:
+
+    snap set ladder userpass=myuser:mypassword
+
+  Then restart the service:
+
+    snap restart ladder
+
+  Point your browser at http://localhost:<port> once running.
+
   This snap is maintained by Alan Pope, and is not
   necessarily endorsed or officially maintained by the upstream developers.
 
@@ -25,6 +37,12 @@ grade: stable
 confinement: strict
 
 parts:
+  launcher:
+    plugin: dump
+    source: snap/local
+    organize:
+      ladder-launch: bin/ladder-launch
+
   ladder:
     plugin: make
     source: https://github.com/everywall/ladder
@@ -42,7 +60,7 @@ parts:
 
 apps:
   ladder:
-    command: ladder
+    command: bin/ladder-launch
     daemon: simple
     plugs:
       - network
